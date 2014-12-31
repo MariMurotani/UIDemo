@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="us">
+<head>
+	<meta charset="utf-8">
+	<title>Tinerコピー</title>
+	<link href="jquery-ui.css" rel="stylesheet">
+	<script src="prototype.js"></script>
+	<script src="md5.js"></script>
+	<script src="external/jquery/jquery.js"></script>
+
+	<!-
+
+		jqyeryのアニメーションライブラリ
+		http://ricostacruz.com/jquery.transit/
+		
+		http://api.jquery.com/position/
+
+	-->
+
+
+
+
+	<script type="text/javascript">
+	var utils = {};	
+	var objClsA;
+		
+	//	タブ1のロジック
+	var classA = Class.create(); 
+	classA.prototype = {
+		save_key: "key_test",
+		booMoving: false,
+		intLeft: undefined,
+		intTop: undefined,
+		intDeg: 0,
+		intToward: undefined,
+		objInitialPos: undefined,
+		strTargetId: "#waku1",
+		strTargetId2: "#waku2",
+		intCounter: 0,
+		intDirectionP: 0,
+		intDirectionM: 0,
+		initialize : function(element) { 
+			this.element = $(element);
+           
+			//$("*[name=txtime]").val(objDate.toLocaleTimeString());
+			//$( 'input[name="radio"]:radio' ).change(this.radioClicked);
+			//$( 'button[name="btclear"]' ).click(this.clearAllLocalStorage);
+			//$( '#radio5' ).css("color","red");
+			var self = this;
+			$(this.strTargetId).mousedown('mousedown', function(e){ self.mouseDown(e) });
+			window.addEventListener('mousemove', function(e){ self.mouseMove (e) }, false);
+			window.addEventListener('mouseup',   function(e){ self.mouseUp  (e) }, false);
+		
+		},
+		mouseDown: function(e){
+			e.preventDefault();
+			console.log("mouse down");
+			this.booMoving = true;
+			this.intDeg = 0;
+			this.intToward = undefined;
+			this.objInitialPos = $(this.strTargetId).position();
+			this.setDeg(this.strTargetId,0);
+			this.setPos(this.strTargetId,0);
+			this.intCounter = 0;
+			this.intDirectionP = 0;
+			this.intDirectionM = 0;
+			//$('#waku1').scale(1.5,1.5); 
+			//$(this).effect("scale", { percent: 150}, 500);
+		
+		},
+		mouseMove: function(e){
+			if(this.booMoving){
+				var intMoveX = e.pageX - objClsA.intLeft;
+				var intMoveY = e.pageY - objClsA.intTop;
+				
+				var objPosition = $(this.strTargetId).position();
+				
+				//if(this.intLeft != undefined){
+				if(true){
+					this.setDeg(this.strTargetId,this.intDeg);
+					if(this.intCounter < 3){
+						if(0 < intMoveX){
+							this.intDirectionP++;
+						}else{
+							this.intDirectionM++;
+						}
+						this.intCounter++;
+					}else if(this.intCounter == 3){
+						if(this.intDirectionM < this.intDirectionP){
+							this.intToward = 1;
+						}else{
+							this.intToward = -1;
+						}
+						this.intCounter++;
+					}else{
+						if(0 < this.intToward){
+							console.log("右: " + objPosition.left + " , x: " + this.objInitialPos.left);
+							this.objInitialPos.left+=10;
+							this.intDeg--;
+						}else{
+							console.log("左: " + objPosition.left + " , x: " + this.objInitialPos.left);
+							this.objInitialPos.left-=10;															this.intDeg++;
+						}
+						this.setPos(this.strTargetId,this.objInitialPos.left);
+					}
+				}
+				this.intLeft = e.pageX;
+				this.intTop = e.pageY;
+	
+				//console.log("move amount: " + intMoveX);
+			}
+		},
+		mouseUp: function(e){
+			console.log("mouseup");
+			objClsA.booMoving = false;
+			//	アニメーションしながら消える
+			if(150 < Math.abs(this.objInitialPos.left)){
+				var strEndX = "";
+				if(0 < this.intToward){
+					strEndX = "+=1000px";
+				}else{
+					strEndX = "-=1000px";
+				}
+				$(this.strTargetId).animate(
+					{left: strEndX, opacity: "toggle"},
+					{duration: "slow", easing: "linear",
+						complete: this.animOnComplete}
+				);
+				this.setPos(this.strTargetId,0);
+
+			}else{
+				//	いったんもとに
+				this.setDeg(this.strTargetId,0);
+				this.setPos(this.strTargetId,0);
+				
+			}
+
+			this.intCounter = 0;
+		},
+		setDeg : function(strID,intDeg) {
+			$(strID).css({
+				     '-moz-transform':'rotate(' + intDeg + 'deg)',
+				     '-webkit-transform':'rotate(' + intDeg + 'deg)',
+				     '-o-transform':'rotate(' + intDeg + 'deg)',
+				     '-ms-transform':'rotate(' + intDeg + 'deg)',
+				     'transform':'rotate(' + intDeg + 'deg)'
+				});
+			
+		},
+		setPos: function(strID,intX){
+			$(strID).css({'left': intX});
+		},
+		animOnComplete: function(e){
+			console.log("animOnComplete");
+			"width:280px;top:10px;z-index:49"
+
+			this.setDeg(this.strTargetId,0);
+			this.setPos(this.strTargetId,0);
+
+			$(strTargetId2).button();
+		}
+	}; 
+	//	windowのonload
+	window.onload = function(){
+		console.log("window on load");
+	}
+
+	//	body on loadのかあわり
+	$(document).ready(function(){
+		//console.log("body on load");
+		//$( "#button" ).button();
+		
+		//	tabの初期化
+		objClsA = new classA();
+		//localStorage.setItem(self.save_key_name,jQuery.trim(strTXTN));
+		console.log("end");
+	});
+	</script>
+
+<style type="text/css">
+.wrapper{
+    position: relative;
+}
+.waku	{
+   	position: absolute;
+	background: #EEE;
+	border:2px solid #999; 
+	padding: 0px;
+	margin-bottom:0px;
+	text-align: center;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	left: 0;
+	right: 0;
+	margin: auto;
+	width:300px;
+	height:300px;
+	
+}
+.img {
+	border-top-left-radius: 8px;
+	border-top-right-radius: 8px;
+	-moz-border-radius: 10px;
+	overflow: hidden;
+	width:100%
+}
+</style>
+
+</head>
+
+	<div class="wrapper" style="text-align:center">
+		<div id="waku1" class="waku" style="z-index:50;">
+			<img class="img" src="./img/neko1.jpg" /><BR>
+			デザインはデザイナーにまかせよう<br>
+			猫、53歳<BR>
+			<button>ほにゃらら</button>
+		</div>
+
+		<div id="waku2" class="waku" style="width:280px;top:10px;z-index:49">
+			<img class="img" src="./img/neko2.jpg" /><BR>
+			デザインはデザイナーにまかせよう<br>
+			猫、53歳<BR>
+			<button>ほにゃらら</button>
+		</div>
+		<div id="waku3" class="waku" style="width:240px;top:20px;z-index:48">
+			
+		</div>
+	</div>
+</body>
+</html>
