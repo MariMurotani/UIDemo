@@ -27,6 +27,7 @@
 	//	タブ1のロジック
 	var classA = Class.create(); 
 	classA.prototype = {
+		self: undefined,
 		save_key: "key_test",
 		booMoving: false,
 		intLeft: undefined,
@@ -36,31 +37,43 @@
 		objInitialPos: undefined,
 		strTargetId: "#waku1",
 		strTargetId2: "#waku2",
+		strCurrentID: undefined,
 		intCounter: 0,
 		intDirectionP: 0,
 		intDirectionM: 0,
 		initialize : function(element) { 
 			this.element = $(element);
-           
-			//$("*[name=txtime]").val(objDate.toLocaleTimeString());
-			//$( 'input[name="radio"]:radio' ).change(this.radioClicked);
-			//$( 'button[name="btclear"]' ).click(this.clearAllLocalStorage);
-			//$( '#radio5' ).css("color","red");
-			var self = this;
-			$(this.strTargetId).mousedown('mousedown', function(e){ self.mouseDown(e) });
+			self = this;
+			this.initializeAsTopObject(this.strTargetId);
+			//$(this.strTargetId).mousedown('mousedown', function(e){ self.mouseDown(e) });
 			window.addEventListener('mousemove', function(e){ self.mouseMove (e) }, false);
 			window.addEventListener('mouseup',   function(e){ self.mouseUp  (e) }, false);
 		
 		},
+		initializeAsTopObject: function(strID){
+			console.log(strID);
+			//$(strID).bind('mousedown', function(e){ self.mouseDown(e) });
+			$(strID).bind("mousedown", function(e){ console.log(self);self.mouseDown(e); });
+			$(strID).css({"width":"300px","top":"0px","z-index":50,"opacity":1,"left": '0px'});
+		},
+		initializeAs2ndObject: function(strID){
+			console.log("initializeAs2ndObject" + strID);
+			//$(strID).bind('mousedown', function(e){ self.mouseDown(e) });
+			this.setPos(strID,0);
+			this.setDeg(strID,0);
+			$(strID).bind("mousedown", function(e){ console.log(self);self.mouseDown(e); });
+			$(strID).css({"width":"280px","top":"10px","z-index":49,"opacity":1,"left": '0px'});
+		},
 		mouseDown: function(e){
 			e.preventDefault();
 			console.log("mouse down");
+			this.strCurrentID = '#' + e.currentTarget.id;
 			this.booMoving = true;
 			this.intDeg = 0;
 			this.intToward = undefined;
-			this.objInitialPos = $(this.strTargetId).position();
-			this.setDeg(this.strTargetId,0);
-			this.setPos(this.strTargetId,0);
+			this.objInitialPos = $(this.strCurrentID).position();
+			this.setDeg(this.strCurrentID,0);
+			this.setPos(this.strCurrentID,0);
 			this.intCounter = 0;
 			this.intDirectionP = 0;
 			this.intDirectionM = 0;
@@ -70,39 +83,37 @@
 		},
 		mouseMove: function(e){
 			if(this.booMoving){
+				
 				var intMoveX = e.pageX - objClsA.intLeft;
 				var intMoveY = e.pageY - objClsA.intTop;
 				
-				var objPosition = $(this.strTargetId).position();
+				var objPosition = $(this.strCurrentID).position();
 				
-				//if(this.intLeft != undefined){
-				if(true){
-					this.setDeg(this.strTargetId,this.intDeg);
-					if(this.intCounter < 3){
-						if(0 < intMoveX){
-							this.intDirectionP++;
-						}else{
-							this.intDirectionM++;
-						}
-						this.intCounter++;
-					}else if(this.intCounter == 3){
-						if(this.intDirectionM < this.intDirectionP){
-							this.intToward = 1;
-						}else{
-							this.intToward = -1;
-						}
-						this.intCounter++;
+				this.setDeg(this.strCurrentID,this.intDeg);
+				if(this.intCounter < 3){
+					if(0 < intMoveX){
+						this.intDirectionP++;
 					}else{
-						if(0 < this.intToward){
-							console.log("右: " + objPosition.left + " , x: " + this.objInitialPos.left);
-							this.objInitialPos.left+=10;
-							this.intDeg--;
-						}else{
-							console.log("左: " + objPosition.left + " , x: " + this.objInitialPos.left);
-							this.objInitialPos.left-=10;															this.intDeg++;
-						}
-						this.setPos(this.strTargetId,this.objInitialPos.left);
+						this.intDirectionM++;
 					}
+					this.intCounter++;
+				}else if(this.intCounter == 3){
+					if(this.intDirectionM < this.intDirectionP){
+						this.intToward = 1;
+					}else{
+						this.intToward = -1;
+					}
+					this.intCounter++;
+				}else{
+					if(0 < this.intToward){
+						console.log("右: " + objPosition.left + " , x: " + this.objInitialPos.left);
+						this.objInitialPos.left+=10;
+						this.intDeg--;
+					}else{
+						console.log("左: " + objPosition.left + " , x: " + this.objInitialPos.left);
+						this.objInitialPos.left-=10;															this.intDeg++;
+					}
+					this.setPos(this.strCurrentID,this.objInitialPos.left);
 				}
 				this.intLeft = e.pageX;
 				this.intTop = e.pageY;
@@ -112,30 +123,32 @@
 		},
 		mouseUp: function(e){
 			console.log("mouseup");
-			objClsA.booMoving = false;
-			//	アニメーションしながら消える
-			if(150 < Math.abs(this.objInitialPos.left)){
-				var strEndX = "";
-				if(0 < this.intToward){
-					strEndX = "+=1000px";
-				}else{
-					strEndX = "-=1000px";
-				}
-				$(this.strTargetId).animate(
-					{left: strEndX, opacity: "toggle"},
-					{duration: "slow", easing: "linear",
-						complete: this.animOnComplete}
-				);
-				this.setPos(this.strTargetId,0);
-
-			}else{
-				//	いったんもとに
-				this.setDeg(this.strTargetId,0);
-				this.setPos(this.strTargetId,0);
+			if(this.booMoving){
+				//	アニメーションしながら消える
+				if(150 < Math.abs(this.objInitialPos.left)){
+					var strEndX = "";
+					if(0 < this.intToward){
+						strEndX = "+=600px";
+					}else{
+						strEndX = "-=600px";
+					}
+					$(this.strCurrentID).animate(
+						{left: strEndX /*, opacity: "toggle"*/},
+						{duration: "slow", easing: "linear",
+							complete: this.animOnComplete}
+					);
+					
 				
+				}else{
+					//	いったんもとに
+					this.setDeg(this.strCurrentID,0);
+					this.setPos(this.strCurrentID,0);
+					
+				}
 			}
-
 			this.intCounter = 0;
+
+			this.booMoving = false;
 		},
 		setDeg : function(strID,intDeg) {
 			$(strID).css({
@@ -152,12 +165,22 @@
 		},
 		animOnComplete: function(e){
 			console.log("animOnComplete");
-			"width:280px;top:10px;z-index:49"
+			
+			//	枠1の時
+			if('#'+this.id == self.strTargetId){
+				console.log("枠1");
+				self.initializeAsTopObject(self.strTargetId2);
+				self.initializeAs2ndObject('#'+this.id);
+			}
+			//	枠2の時
+			else if('#'+this.id == self.strTargetId2){
+				console.log("枠2");
+				self.initializeAsTopObject(self.strTargetId);
+				self.initializeAs2ndObject('#'+this.id);
+			}
 
-			this.setDeg(this.strTargetId,0);
-			this.setPos(this.strTargetId,0);
-
-			$(strTargetId2).button();
+			//this.setDeg(this.strTargetId,0);
+			//this.setPos(this.strTargetId,0);
 		}
 	}; 
 	//	windowのonload
@@ -207,7 +230,7 @@
 </style>
 
 </head>
-
+<body>
 	<div class="wrapper" style="text-align:center">
 		<div id="waku1" class="waku" style="z-index:50;">
 			<img class="img" src="./img/neko1.jpg" /><BR>
